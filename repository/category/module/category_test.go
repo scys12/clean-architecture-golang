@@ -1,4 +1,4 @@
-package imp_test
+package module_test
 
 import (
 	"testing"
