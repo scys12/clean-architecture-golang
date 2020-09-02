@@ -1,0 +1,21 @@
+version: '13'
+services: 
+    carikom:
+        container_name: carikom
+        build: .
+        ports: 
+            - 8080:8080
+        restart: on-failure
+        depends_on: 
+            - carikom_db
+    
+    carikom_db:
+        image: mongo
+        container_name: carikom_db
+        ports: 
+            - 27017:27017
+        volumes: 
+            - mongodb_data:/data/db
+
+volumes: 
+    mongodb_data:
