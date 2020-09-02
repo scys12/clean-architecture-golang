@@ -6,4 +6,5 @@ import (
 
 func (u *categoryUsecase) GetAllCategories() []models.Category {
 	categories := u.repo.GetAllCategories()
+	return categories
 }
