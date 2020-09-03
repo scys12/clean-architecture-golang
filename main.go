@@ -1,7 +1,7 @@
 package main
 
 import (
-	"net/http"
+	"log"
 
 	"github.com/labstack/echo/v4"
 
@@ -34,5 +34,5 @@ func main() {
 	categoryUC := uCategoryModule.New(categoryRepo)
 	dCategoryHandler := dCategoryHttp.New(categoryUC)
 	dCategoryHttp.SetRoute(e, dCategoryHandler)
-	http.ListenAndServe(":8080", nil)
+	log.Fatal(e.Start(":8080"))
 }
