@@ -1,4 +1,4 @@
-version: '13'
+version: '3'
 services: 
     carikom:
         container_name: carikom
@@ -8,14 +8,23 @@ services:
         restart: on-failure
         depends_on: 
             - carikom_db
+        networks:
+            - marketplace_network
     
     carikom_db:
         image: mongo
         container_name: carikom_db
+        environment: 
+            - MONGO_INITDB_DATABASE= db_carikom
         ports: 
             - 27017:27017
         volumes: 
             - mongodb_data:/data/db
+        networks:
+            - marketplace_network
 
 volumes: 
     mongodb_data:
+networks:
+    marketplace_network:
+        driver: bridge
