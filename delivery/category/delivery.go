@@ -1,9 +1,9 @@
 package category
 
 import (
-	"net/http"
+	"github.com/labstack/echo/v4"
 )
 
 type Delivery interface {
-	GetAllCategories(w http.ResponseWriter, req *http.Request)
+	GetAllCategories(echo.Context) error
 }

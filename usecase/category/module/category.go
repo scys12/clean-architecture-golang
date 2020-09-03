@@ -1,10 +1,20 @@
 package module
 
 import (
-	"github.com/scys12/clean-architecture-golang/models"
+	"context"
+	"time"
+
+	"github.com/scys12/clean-architecture-golang/model"
 )
 
-func (u *categoryUsecase) GetAllCategories() []models.Category {
-	categories := u.repo.GetAllCategories()
-	return categories
+const timeout = 10 * time.Second
+
+func (u *categoryUsecase) GetAllCategories(c context.Context) (cats []*model.Category, err error) {
+	ctx, cancel := context.WithTimeout(c, timeout)
+	defer cancel()
+	cats, err = u.repo.GetAllCategories(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return
 }

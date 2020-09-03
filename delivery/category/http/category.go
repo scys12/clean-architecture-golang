@@ -1,11 +1,16 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/labstack/echo/v4"
 )
 
-func (d *delivery) GetAllCategories(w http.ResponseWriter, r *http.Request) {
-	categories := d.usecase.GetAllCategories()
-	fmt.Printf("%v\n", categories)
+func (d *delivery) GetAllCategories(c echo.Context) error {
+	ctx := c.Request().Context()
+	categories, err := d.usecase.GetAllCategories(ctx)
+	if err != nil {
+		return c.JSON(http.StatusNotFound, nil)
+	}
+	return c.JSON(http.StatusOK, categories)
 }

@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Secret            string `mapstructure:"secret"`
 	DBDriver          string `mapstructure:"db_driver"`
+	DBName            string `mapstructure:"db_name"`
 	DBHost            string `mapstructure:"db_host"`
 	DBPort            string `mapstructure:"db_port"`
 	JwtAccessExpires  int    `mapstructure:"jwt_at_expire"`
@@ -27,7 +28,7 @@ func parseConfigFilePath() string {
 func NewConfig() *Config {
 	configPath := parseConfigFilePath()
 	viper.SetConfigName("config")
-	viper.SetConfigFile("env")
+	viper.SetConfigType("env")
 	viper.AddConfigPath(configPath)
 	err := viper.ReadInConfig()
 	if err != nil {

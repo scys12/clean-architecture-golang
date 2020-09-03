@@ -1,6 +1,10 @@
 package main
 
 import (
+	"net/http"
+
+	"github.com/labstack/echo/v4"
+
 	"github.com/scys12/clean-architecture-golang/database"
 	dCategoryHttp "github.com/scys12/clean-architecture-golang/delivery/category/http"
 	rCategory "github.com/scys12/clean-architecture-golang/repository/category/module"
@@ -25,7 +29,10 @@ func main() {
 		panic(err)
 	}
 
-	categoryRepo := rCategory.New()
+	e := echo.New()
+	categoryRepo := rCategory.New(client.Database)
 	categoryUC := uCategoryModule.New(categoryRepo)
-	dCategoryHttp.New(categoryUC)
+	dCategoryHandler := dCategoryHttp.New(categoryUC)
+	dCategoryHttp.SetRoute(e, dCategoryHandler)
+	http.ListenAndServe(":8080", nil)
 }

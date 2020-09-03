@@ -1,7 +1,7 @@
 package http
 
 import (
-	"net/http"
+	"github.com/labstack/echo/v4"
 
 	dCategory "github.com/scys12/clean-architecture-golang/delivery/category"
 	uCategory "github.com/scys12/clean-architecture-golang/usecase/category"
@@ -15,6 +15,9 @@ func New(usecase uCategory.Usecase) dCategory.Delivery {
 	handler := &delivery{
 		usecase: usecase,
 	}
-	http.HandleFunc("/categories", handler.GetAllCategories)
 	return handler
+}
+
+func SetRoute(e *echo.Echo, handler dCategory.Delivery) {
+	e.GET("/categories", handler.GetAllCategories)
 }

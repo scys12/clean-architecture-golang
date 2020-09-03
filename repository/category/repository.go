@@ -1,9 +1,11 @@
 package category
 
 import (
-	"github.com/scys12/clean-architecture-golang/models"
+	"context"
+
+	"github.com/scys12/clean-architecture-golang/model"
 )
 
 type Repository interface {
-	GetAllCategories() []models.Category
+	GetAllCategories(context.Context) ([]*model.Category, error)
 }

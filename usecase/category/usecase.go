@@ -1,9 +1,11 @@
 package category
 
 import (
-	"github.com/scys12/clean-architecture-golang/models"
+	"context"
+
+	models "github.com/scys12/clean-architecture-golang/model"
 )
 
 type Usecase interface {
-	GetAllCategories() []models.Category
+	GetAllCategories(context.Context) ([]*models.Category, error)
 }

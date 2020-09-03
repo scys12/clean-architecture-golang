@@ -1,6 +1,7 @@
 # Start from golang base image
 FROM golang:1.14-alpine as builder
 
+ENV GO111MODULE=on
 
 # Install git.
 # Git is required for fetching the dependencies.
