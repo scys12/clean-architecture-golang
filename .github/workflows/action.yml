@@ -47,4 +47,4 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Build with Dockerfile
-        run: docker build -t app .1
+        run: docker build -t app .
