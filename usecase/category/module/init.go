@@ -5,12 +5,12 @@ import (
 	uCategory "github.com/scys12/clean-architecture-golang/usecase/category"
 )
 
-type categoryUsecase struct {
+type usecase struct {
 	repo rCategory.Repository
 }
 
 func New(catRepo rCategory.Repository) uCategory.Usecase {
-	return &categoryUsecase{
+	return &usecase{
 		repo: catRepo,
 	}
 }
