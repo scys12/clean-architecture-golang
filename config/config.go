@@ -8,15 +8,12 @@ import (
 )
 
 type Config struct {
-	Secret            string `mapstructure:"secret"`
-	DBDriver          string `mapstructure:"db_driver"`
-	DBName            string `mapstructure:"db_name"`
-	DBUser            string `mapstructure:"db_User"`
-	DBPassword        string `mapstructure:"db_password"`
-	DBHost            string `mapstructure:"db_host"`
-	DBPort            string `mapstructure:"db_port"`
-	JwtAccessExpires  int    `mapstructure:"jwt_at_expire"`
-	JwtRefreshExpires int    `mapstructure:"jwt_rt_expire"`
+	DBDriver  string `mapstructure:"db_driver"`
+	DBName    string `mapstructure:"db_name"`
+	DBHost    string `mapstructure:"db_host"`
+	DBPort    string `mapstructure:"db_port"`
+	RedisHost string `mapstructure:"redis_host"`
+	RedisPort string `mapstructure:"redis_port"`
 }
 
 func parseConfigFilePath() string {

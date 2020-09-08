@@ -8,6 +8,7 @@ services:
         restart: on-failure
         depends_on: 
             - carikom_db
+            - carikom_redis
         networks:
             - marketplace_network
     
@@ -15,16 +16,27 @@ services:
         image: mongo
         container_name: carikom_db
         environment: 
-            - MONGO_INITDB_DATABASE= db_carikom
+            MONGO_INITDB_DATABASE: db_carikom
         ports: 
             - 27017:27017
         volumes: 
             - mongodb_data:/data/db
         networks:
             - marketplace_network
+    
+    carikom_redis:
+        image: redis
+        container_name: carikom_redis
+        ports: 
+            - 6379:6379
+        volumes: 
+            - redis_data:/data/redis
+        networks:
+            - marketplace_network
 
 volumes: 
     mongodb_data:
+    redis_data:
 networks:
     marketplace_network:
         driver: bridge

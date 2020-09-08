@@ -16,7 +16,7 @@ type MongoClient struct {
 }
 
 func NewMongoDB(config *config.Config) (*MongoClient, error) {
-	uri := fmt.Sprintf("%v://%v:%v", config.DBDriver, config.DBHost, config.DBPort)
+	uri := fmt.Sprintf("%v://%v:%v/%v", config.DBDriver, config.DBHost, config.DBPort, config.DBName)
 	clientOpt := options.Client().ApplyURI(uri)
 	client, err := mongo.NewClient(clientOpt)
 	if err != nil {
