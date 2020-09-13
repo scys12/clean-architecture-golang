@@ -9,7 +9,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/scys12/clean-architecture-golang/payload/request"
+	"github.com/scys12/clean-architecture-golang/pkg/payload/request"
 )
 
 const timeout = 10 * time.Second

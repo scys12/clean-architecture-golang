@@ -21,12 +21,17 @@ type Session struct {
 }
 
 type SessionStore interface {
-	CreateSession() error
+	CreateSession(echo.Context, *model.User) error
 	Get(string) (Session, error)
 	Set(string, Session) error
+	Connect() redis.Conn
 }
 
-func (r *RedisClient) CreateSession(ctx echo.Context, user *model.User) error {
+func (r *redisClient) Connect() redis.Conn {
+	return r.conn
+}
+
+func (r *redisClient) CreateSession(ctx echo.Context, user *model.User) error {
 	sessionID := uuid.New().String()
 	ctx.SetCookie(&http.Cookie{
 		Name:     "sessionID",
@@ -39,9 +44,9 @@ func (r *RedisClient) CreateSession(ctx echo.Context, user *model.User) error {
 	return nil
 }
 
-func (r *RedisClient) Get(sess_id string) (Session, error) {
+func (r *redisClient) Get(sess_id string) (Session, error) {
 	var session Session
-	id, err := redis.Bytes(r.Conn.Do("GET", sess_id))
+	id, err := redis.Bytes(r.conn.Do("GET", sess_id))
 	if err != nil {
 		return session, err
 	}
@@ -51,12 +56,12 @@ func (r *RedisClient) Get(sess_id string) (Session, error) {
 	return session, nil
 }
 
-func (r *RedisClient) Set(sess_id string, session Session) error {
+func (r *redisClient) Set(sess_id string, session Session) error {
 	s, err := json.Marshal(session)
 	if err != nil {
 		return err
 	}
-	if _, err = r.Conn.Do("SET", sess_id, s); err != nil {
+	if _, err = r.conn.Do("SET", sess_id, s); err != nil {
 		return err
 	}
 	return nil

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/scys12/clean-architecture-golang/config"
+	"github.com/scys12/clean-architecture-golang/pkg/config"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )

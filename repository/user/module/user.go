@@ -3,7 +3,7 @@ package module
 import (
 	"context"
 
-	"github.com/scys12/clean-architecture-golang/payload/request"
+	"github.com/scys12/clean-architecture-golang/pkg/payload/request"
 
 	"go.mongodb.org/mongo-driver/bson"
 

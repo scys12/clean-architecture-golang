@@ -3,13 +3,13 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/scys12/clean-architecture-golang/payload/response"
+	"github.com/scys12/clean-architecture-golang/pkg/payload/response"
 
 	"github.com/labstack/echo/v4"
-	"github.com/scys12/clean-architecture-golang/session"
+	"github.com/scys12/clean-architecture-golang/pkg/session"
 )
 
-func SessionMiddleware(s *session.RedisClient) echo.MiddlewareFunc {
+func SessionMiddleware(s session.SessionStore) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
 			cookie, err := ctx.Cookie("sessionID")

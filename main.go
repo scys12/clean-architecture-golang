@@ -10,51 +10,49 @@ import (
 	rUser "github.com/scys12/clean-architecture-golang/repository/user/module"
 
 	"github.com/scys12/clean-architecture-golang/delivery/middleware"
-	"github.com/scys12/clean-architecture-golang/session"
+	"github.com/scys12/clean-architecture-golang/pkg/session"
 
 	"github.com/labstack/echo/v4"
 
-	"github.com/scys12/clean-architecture-golang/database"
 	dCategoryHttp "github.com/scys12/clean-architecture-golang/delivery/category/http"
+	"github.com/scys12/clean-architecture-golang/pkg/database"
 	rCategory "github.com/scys12/clean-architecture-golang/repository/category/module"
 	uCategoryModule "github.com/scys12/clean-architecture-golang/usecase/category/module"
 
-	"github.com/scys12/clean-architecture-golang/config"
+	"github.com/scys12/clean-architecture-golang/pkg/config"
 
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
 func main() {
 	config := config.NewConfig()
-	client, err := database.NewMongoDB(config)
+	mongo, err := database.NewMongoDB(config)
 
 	rd := session.NewRedisPool(config)
-	rdConn := rd.Pool.Get()
 
-	defer rdConn.Close()
-	if err := session.Ping(rdConn); err != nil {
+	defer rd.Connect().Close()
+	if err := session.Ping(rd); err != nil {
 		panic(err)
 	}
-	rd.Conn = rdConn
 
 	defer func() {
-		if err = client.Client.Disconnect(client.Context); err != nil {
+		if err = mongo.Client.Disconnect(mongo.Context); err != nil {
 			panic(err)
 		}
 	}()
-	if err := client.Client.Ping(client.Context, readpref.Primary()); err != nil {
+	if err := mongo.Client.Ping(mongo.Context, readpref.Primary()); err != nil {
 		panic(err)
 	}
 
 	e := echo.New()
 	e.Use(middleware.CORS())
 
-	categoryRepo := rCategory.New(client.Database)
+	categoryRepo := rCategory.New(mongo.Database)
 	categoryUC := uCategoryModule.New(categoryRepo)
 	dCategoryHandler := dCategoryHttp.New(categoryUC)
 	dCategoryHttp.SetRoute(e, dCategoryHandler)
 
-	userRepo := rUser.New(client.Database)
+	userRepo := rUser.New(mongo.Database)
 	userUC := uUserModule.New(userRepo)
 	dUserHandler := dUserHttp.New(userUC, rd)
 	dUserHttp.SetRoute(e, dUserHandler, rd)

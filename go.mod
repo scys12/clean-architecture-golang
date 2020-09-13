@@ -10,6 +10,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/echo/v4 v4.1.17
+	github.com/labstack/gommon v0.3.0
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/testify v1.6.1
 	go.mongodb.org/mongo-driver v1.4.1

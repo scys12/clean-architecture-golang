@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/scys12/clean-architecture-golang/payload/request"
-	"github.com/scys12/clean-architecture-golang/payload/response"
+	"github.com/scys12/clean-architecture-golang/pkg/payload/request"
+	"github.com/scys12/clean-architecture-golang/pkg/payload/response"
 )
 
 func (d *delivery) AuthenticateUser(c echo.Context) error {

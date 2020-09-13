@@ -3,7 +3,7 @@ package http
 import (
 	"net/http"
 
-	"github.com/scys12/clean-architecture-golang/payload/response"
+	"github.com/scys12/clean-architecture-golang/pkg/payload/response"
 
 	"github.com/labstack/echo/v4"
 )
