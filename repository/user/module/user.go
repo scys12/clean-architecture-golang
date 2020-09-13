@@ -3,8 +3,6 @@ package module
 import (
 	"context"
 
-	"github.com/scys12/clean-architecture-golang/pkg/payload/request"
-
 	"go.mongodb.org/mongo-driver/bson"
 
 	"github.com/scys12/clean-architecture-golang/model"
@@ -18,15 +16,15 @@ func (r *repository) GetUserAuthenticateData(ctx context.Context, uName string) 
 	return user, nil
 }
 
-func (r *repository) RegisterUser(ctx context.Context, req *request.RegisterRequest) (err error) {
+func (r *repository) RegisterUser(ctx context.Context, user model.User) (err error) {
 	data := bson.M{
-		"username": req.Username,
-		"password": req.Password,
-		"email":    req.Email,
-		"name":     req.Name,
-		"location": req.Location,
-		"phone":    req.Phone,
-		"role":     req.Role,
+		"username": user.Username,
+		"password": user.Password,
+		"email":    user.Email,
+		"name":     user.Name,
+		"location": user.Location,
+		"phone":    user.Phone,
+		"role":     user.Role,
 	}
 	_, err = r.db.Collection(r.collection).InsertOne(ctx, data)
 	return

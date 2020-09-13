@@ -17,4 +17,12 @@ mongo -- "$MONGO_INITDB_DATABASE" <<EOF
             name: 'Storage'
         }
     ] );
+    db.role.insertMany( [
+        {
+            name: 'admin'
+        },
+        {
+            name: 'user'
+        }
+    ] )
 EOF

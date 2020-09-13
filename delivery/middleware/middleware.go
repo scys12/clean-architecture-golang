@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/scys12/clean-architecture-golang/pkg/payload/response"
@@ -9,7 +10,7 @@ import (
 	"github.com/scys12/clean-architecture-golang/pkg/session"
 )
 
-func SessionMiddleware(s session.SessionStore) echo.MiddlewareFunc {
+func SessionMiddleware(s session.SessionStore, role string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
 			cookie, err := ctx.Cookie("sessionID")
@@ -22,6 +23,10 @@ func SessionMiddleware(s session.SessionStore) echo.MiddlewareFunc {
 			if err != nil {
 				response.Error(ctx, http.StatusInternalServerError, err)
 				return err
+			}
+			if role != sess.UserRole {
+				response.Error(ctx, http.StatusUnauthorized, errors.New("Wrong authorization"))
+				return nil
 			}
 			ctx.Set("sessionID", sessionID)
 			ctx.Set("userID", sess.UserID.String())

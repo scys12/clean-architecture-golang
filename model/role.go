@@ -11,5 +11,5 @@ const (
 
 type Role struct {
 	ID   primitive.ObjectID `bson:"_id" json:"id"`
-	Name string
+	Name string             `bson:"name" json:"name"`
 }

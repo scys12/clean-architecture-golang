@@ -8,7 +8,7 @@ import (
 
 type Response struct {
 	Status bool        `json:"status"`
-	Data   interface{} `json:"data,omitempty"`
+	Data   interface{} `json:"data"`
 }
 
 func OK(c echo.Context, data interface{}) error {

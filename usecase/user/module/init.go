@@ -1,16 +1,19 @@
 package module
 
 import (
+	rRole "github.com/scys12/clean-architecture-golang/repository/role"
 	rUser "github.com/scys12/clean-architecture-golang/repository/user"
 	uUser "github.com/scys12/clean-architecture-golang/usecase/user"
 )
 
 type usecase struct {
-	repo rUser.Repository
+	userRepo rUser.Repository
+	roleRepo rRole.Repository
 }
 
-func New(catRepo rUser.Repository) uUser.Usecase {
+func New(uRepo rUser.Repository, rRepo rRole.Repository) uUser.Usecase {
 	return &usecase{
-		repo: catRepo,
+		userRepo: uRepo,
+		roleRepo: rRepo,
 	}
 }

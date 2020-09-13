@@ -2,7 +2,6 @@ package module
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/scys12/clean-architecture-golang/model"
@@ -17,11 +16,10 @@ const timeout = 10 * time.Second
 func (u *usecase) AuthenticateUser(c context.Context, req *request.LoginRequest) (*model.User, error) {
 	ctx, cancel := context.WithTimeout(c, timeout)
 	defer cancel()
-	user, err := u.repo.GetUserAuthenticateData(ctx, req.Username)
+	user, err := u.userRepo.GetUserAuthenticateData(ctx, req.Username)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("%v\n", user)
 	passwordCheck := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if passwordCheck != nil {
 		return nil, passwordCheck
@@ -37,9 +35,20 @@ func (u *usecase) RegisterUser(c context.Context, req *request.RegisterRequest) 
 		return err
 	}
 	req.Password = string(pwd)
-	err = u.repo.RegisterUser(ctx, req)
+	req.Role, err = u.roleRepo.GetRoleByName(ctx, model.ROLE_USER)
+	if err != nil {
+		return err
+	}
+	user := model.User{
+		Email:    req.Email,
+		Username: req.Username,
+		Password: req.Password,
+		Role:     *req.Role,
+	}
+	err = u.userRepo.RegisterUser(ctx, user)
 	return err
 }
+
 func (u *usecase) EditUserProfile(context.Context) error {
 	panic("need implement")
 }

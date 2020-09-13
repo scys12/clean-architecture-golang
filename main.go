@@ -3,10 +3,13 @@ package main
 import (
 	"log"
 
+	"github.com/scys12/clean-architecture-golang/pkg/aws"
+
 	dUserHttp "github.com/scys12/clean-architecture-golang/delivery/user/http"
 
 	uUserModule "github.com/scys12/clean-architecture-golang/usecase/user/module"
 
+	rRole "github.com/scys12/clean-architecture-golang/repository/role/module"
 	rUser "github.com/scys12/clean-architecture-golang/repository/user/module"
 
 	"github.com/scys12/clean-architecture-golang/delivery/middleware"
@@ -26,15 +29,17 @@ import (
 
 func main() {
 	config := config.NewConfig()
+	_, err := aws.InitializeSessionAWS()
+	if err != nil {
+		panic(err)
+	}
 	mongo, err := database.NewMongoDB(config)
 
 	rd := session.NewRedisPool(config)
-
 	defer rd.Connect().Close()
 	if err := session.Ping(rd); err != nil {
 		panic(err)
 	}
-
 	defer func() {
 		if err = mongo.Client.Disconnect(mongo.Context); err != nil {
 			panic(err)
@@ -53,7 +58,8 @@ func main() {
 	dCategoryHttp.SetRoute(e, dCategoryHandler)
 
 	userRepo := rUser.New(mongo.Database)
-	userUC := uUserModule.New(userRepo)
+	mockRepo := rRole.New(mongo.Database)
+	userUC := uUserModule.New(userRepo, mockRepo)
 	dUserHandler := dUserHttp.New(userUC, rd)
 	dUserHttp.SetRoute(e, dUserHandler, rd)
 
