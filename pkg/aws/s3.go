@@ -3,30 +3,49 @@ package aws
 import (
 	"bytes"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"path/filepath"
-	"strconv"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
 	maxSize = int64(5120000)
-	bucket  = ""
+	bucket  = "sea-marketplace"
 )
 
-type S3Store interface {
-	uploadFileToS3(*FileForm, string, string) (string, error)
+type FileParam struct {
+	FileHeader *multipart.FileHeader
+	UserID     primitive.ObjectID
+	FolderName string
+	FileURL    string
 }
 
-func uploadFileToS3(fileF *FileForm, ID uint64, folder string) (string, error) {
-	size := fileF.fileHeader.Size
+type S3Store interface {
+	UploadFileToS3(FileParam) (string, error)
+}
+
+func (awsS3 *awsClient) UploadFileToS3(fileParam FileParam) (string, error) {
+	src, err := fileParam.FileHeader.Open()
+	if err != nil {
+		return "", err
+	}
+	defer src.Close()
+	size := fileParam.FileHeader.Size
 	buffer := make([]byte, size)
-	fileF.file.Read(buffer)
-	tempFileName := fmt.Sprintf("%v/%v-%v%v", folder, strconv.FormatUint(ID, 10), uuid.New().String(), filepath.Ext(fileF.fileHeader.Filename))
-	_, err := s3.New(fileF.session).PutObject(&s3.PutObjectInput{
+	src.Read(buffer)
+	var tempFileName string
+	if fileParam.FileURL != "" {
+		tempFileName = strings.Split(fileParam.FileURL, "s3.amazonaws.com/")[1]
+	} else {
+		tempFileName = fmt.Sprintf("%v/%v-%v%v", fileParam.FolderName, fileParam.UserID.Hex(), uuid.New().String(), filepath.Ext(fileParam.FileHeader.Filename))
+	}
+	_, err = s3.New(awsS3.session).PutObject(&s3.PutObjectInput{
 		Bucket:               aws.String(bucket),
 		Key:                  aws.String(tempFileName),
 		ACL:                  aws.String("public-read"), // could be private if you want it to be access by only authorized users

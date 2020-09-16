@@ -29,7 +29,7 @@ func SessionMiddleware(s session.SessionStore, role string) echo.MiddlewareFunc 
 				return nil
 			}
 			ctx.Set("sessionID", sessionID)
-			ctx.Set("userID", sess.UserID.String())
+			ctx.Set("userID", sess.UserID)
 			return next(ctx)
 		}
 	}

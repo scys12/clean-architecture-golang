@@ -7,6 +7,7 @@ import (
 )
 
 type Repository interface {
-	GetUserAuthenticateData(context.Context, string) (*model.User, error)
-	RegisterUser(context.Context, model.User) error
+	GetUserAuthenticateData(context.Context, map[string]interface{}) (*model.UserAuth, *model.UserProfile, error)
+	RegisterUser(context.Context, model.UserAuth) error
+	EditUserProfile(context.Context, model.UserProfile) error
 }

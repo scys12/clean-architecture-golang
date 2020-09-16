@@ -3,11 +3,13 @@ package module_test
 import (
 	"context"
 	"errors"
+	"log"
 	"testing"
 
+	"github.com/scys12/clean-architecture-golang/pkg/aws/mocks"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	"github.com/labstack/gommon/log"
+	"github.com/scys12/clean-architecture-golang/usecase/user"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -26,50 +28,60 @@ import (
 
 func TestAuthenticateUser(t *testing.T) {
 	tts := []struct {
-		name               string
-		expectedLoginReq   *request.LoginRequest
-		err                error
-		expectedUser       *model.User
-		expectedResultUser *model.User
+		name                string
+		expectedLoginReq    *request.LoginRequest
+		err                 error
+		expectedUserAuth    *model.UserAuth
+		expectedUserProfile *model.UserProfile
+		expectedResponse    *user.Response
 	}{
 		{
-			name:               "Failed No account Found",
-			expectedLoginReq:   &request.LoginRequest{Password: "abc", Username: "abc"},
-			err:                errors.New("Failed"),
-			expectedUser:       nil,
-			expectedResultUser: nil,
+			name:                "Failed No account Found",
+			expectedLoginReq:    &request.LoginRequest{Password: "abc", Username: "abc"},
+			err:                 errors.New("Failed"),
+			expectedUserAuth:    nil,
+			expectedUserProfile: nil,
+			expectedResponse:    nil,
 		},
 		{
-			name:               "Failed Password Is Not Same",
-			expectedLoginReq:   &request.LoginRequest{Password: "abc", Username: "abc"},
-			err:                nil,
-			expectedUser:       &model.User{Password: "abcdef", Username: "abc"},
-			expectedResultUser: nil,
+			name:                "Failed Password Is Not Same",
+			expectedLoginReq:    &request.LoginRequest{Password: "abc", Username: "abc"},
+			err:                 nil,
+			expectedUserAuth:    &model.UserAuth{Password: "abcdef", Username: "abc"},
+			expectedUserProfile: &model.UserProfile{},
+			expectedResponse:    nil,
 		},
 		{
-			name:               "Success Login",
-			expectedLoginReq:   &request.LoginRequest{Password: "abc", Username: "abc"},
-			err:                nil,
-			expectedUser:       &model.User{Password: "abc", Username: "abc"},
-			expectedResultUser: &model.User{Password: "abc", Username: "abc"},
+			name:                "Success Login",
+			expectedLoginReq:    &request.LoginRequest{Password: "abc", Username: "abc"},
+			err:                 nil,
+			expectedUserAuth:    &model.UserAuth{Password: "abc", Username: "abc"},
+			expectedUserProfile: &model.UserProfile{},
+			expectedResponse: &user.Response{
+				Username: "abc",
+			},
 		},
 	}
 	for _, tt := range tts {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.expectedUser != nil {
-				password, err := bcrypt.GenerateFromPassword([]byte(tt.expectedUser.Password), bcrypt.DefaultCost)
+			filter := make(map[string]interface{})
+			filter["username"] = tt.expectedLoginReq.Username
+
+			if tt.expectedUserAuth != nil {
+				password, err := bcrypt.GenerateFromPassword([]byte(tt.expectedUserAuth.Password), bcrypt.DefaultCost)
 				assert.NoError(t, err)
-				tt.expectedUser.Password = string(password)
-				if tt.expectedResultUser != nil {
-					tt.expectedResultUser.Password = string(password)
-				}
+				tt.expectedUserAuth.Password = string(password)
 			}
+
+			mockAWS := new(mocks.S3Store)
 			mockUserRepo := new(uMock.Repository)
-			mockUserRepo.On("GetUserAuthenticateData", mock.Anything, tt.expectedLoginReq.Username).Return(tt.expectedUser, tt.err)
+			mockUserRepo.On("GetUserAuthenticateData", mock.Anything, filter).Return(tt.expectedUserAuth, tt.expectedUserProfile, tt.err)
 			mockRoleRepo := new(rMock.Repository)
-			userUC := module.New(mockUserRepo, mockRoleRepo)
-			actualUser, _ := userUC.AuthenticateUser(context.TODO(), tt.expectedLoginReq)
-			assert.Equal(t, tt.expectedResultUser, actualUser)
+
+			userUC := module.New(mockUserRepo, mockRoleRepo, mockAWS)
+
+			userResponse, _ := userUC.AuthenticateUser(context.TODO(), tt.expectedLoginReq)
+			assert.Equal(t, tt.expectedResponse, userResponse)
 		})
 	}
 }
@@ -78,13 +90,13 @@ func TestRegisterUser(t *testing.T) {
 	tts := []struct {
 		name                string
 		expectedRegisterReq *request.RegisterRequest
-		expectedUser        model.User
+		expectedUser        model.UserAuth
 		err                 error
 	}{
 		{
 			name:                "Success Register",
 			expectedRegisterReq: &request.RegisterRequest{Password: "abc", Username: "abc"},
-			expectedUser: model.User{
+			expectedUser: model.UserAuth{
 				Username: "abc",
 				Password: "abc",
 				Role:     model.Role{ID: primitive.NewObjectID(), Name: model.ROLE_USER},
@@ -99,13 +111,62 @@ func TestRegisterUser(t *testing.T) {
 				log.Fatal(err)
 			}
 			tt.expectedUser.Password = string(pwd)
+
+			mockAWS := new(mocks.S3Store)
 			mockUserRepo := new(uMock.Repository)
 			mockRoleRepo := new(rMock.Repository)
+
 			mockUserRepo.On("RegisterUser", mock.Anything, mock.Anything).Return(tt.err)
 			mockRoleRepo.On("GetRoleByName", mock.Anything, mock.Anything).Return(&tt.expectedUser.Role, nil)
-			userUC := module.New(mockUserRepo, mockRoleRepo)
+
+			userUC := module.New(mockUserRepo, mockRoleRepo, mockAWS)
 			err = userUC.RegisterUser(context.TODO(), tt.expectedRegisterReq)
 			assert.Equal(t, err, tt.err)
+		})
+	}
+}
+
+func TestEditProfile(t *testing.T) {
+	ID := primitive.NewObjectID()
+	tts := []struct {
+		name                string
+		expectedProfileReq  *request.ProfileRequest
+		expectedUserAuth    *model.UserAuth
+		expectedUserProfile *model.UserProfile
+		errNoUserData       error
+		errUserProfile      error
+	}{
+		{
+			name:               "Success Register",
+			expectedProfileReq: &request.ProfileRequest{ID: ID, Location: "abc", Name: "abc"},
+			expectedUserAuth: &model.UserAuth{
+				Username: "abc",
+				Password: "abc",
+			},
+			expectedUserProfile: &model.UserProfile{
+				ID:       ID,
+				Location: "abc",
+				Name:     "abc",
+			},
+			errNoUserData:  nil,
+			errUserProfile: nil,
+		},
+	}
+	for _, tt := range tts {
+		t.Run(tt.name, func(t *testing.T) {
+			mockAWS := new(mocks.S3Store)
+			mockUserRepo := new(uMock.Repository)
+			mockRoleRepo := new(rMock.Repository)
+
+			filter := make(map[string]interface{})
+			filter["_id"] = tt.expectedProfileReq.ID
+			mockUserRepo.On("GetUserAuthenticateData", mock.Anything, filter).Return(tt.expectedUserAuth, tt.expectedUserProfile, tt.errNoUserData)
+			mockUserRepo.On("EditUserProfile", mock.Anything, *tt.expectedUserProfile).Return(tt.errUserProfile)
+			mockAWS.On("UploadFileToS3", mock.Anything).Return("", nil)
+
+			userUC := module.New(mockUserRepo, mockRoleRepo, mockAWS)
+			actualResponse, _ := userUC.EditUserProfile(context.TODO(), tt.expectedProfileReq)
+			assert.Equal(t, actualResponse.Location, tt.expectedUserProfile.Location)
 		})
 	}
 }

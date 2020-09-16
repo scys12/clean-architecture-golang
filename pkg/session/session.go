@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"github.com/scys12/clean-architecture-golang/usecase/user"
 
-	"github.com/scys12/clean-architecture-golang/model"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/labstack/echo/v4"
 
@@ -21,7 +21,7 @@ type Session struct {
 }
 
 type SessionStore interface {
-	CreateSession(echo.Context, *model.User) error
+	CreateSession(echo.Context, *user.Response) error
 	Get(string) (Session, error)
 	Set(string, Session) error
 	Connect() redis.Conn
@@ -31,7 +31,7 @@ func (r *redisClient) Connect() redis.Conn {
 	return r.conn
 }
 
-func (r *redisClient) CreateSession(ctx echo.Context, user *model.User) error {
+func (r *redisClient) CreateSession(ctx echo.Context, user *user.Response) error {
 	sessionID := uuid.New().String()
 	ctx.SetCookie(&http.Cookie{
 		Name:     "sessionID",
@@ -40,7 +40,7 @@ func (r *redisClient) CreateSession(ctx echo.Context, user *model.User) error {
 		MaxAge:   86400 * 7,
 	})
 	ctx.Set("sessionID", sessionID)
-	r.Set(sessionID, Session{UserID: user.ID, UserRole: user.Role.Name})
+	r.Set(sessionID, Session{UserID: user.ID, UserRole: user.RoleName})
 	return nil
 }
 

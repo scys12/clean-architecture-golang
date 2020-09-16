@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	"github.com/scys12/clean-architecture-golang/pkg/validator"
+
 	"github.com/scys12/clean-architecture-golang/pkg/aws"
 
 	dUserHttp "github.com/scys12/clean-architecture-golang/delivery/user/http"
@@ -29,7 +31,7 @@ import (
 
 func main() {
 	config := config.NewConfig()
-	_, err := aws.InitializeSessionAWS()
+	aws_s3, err := aws.InitializeSessionAWS()
 	if err != nil {
 		panic(err)
 	}
@@ -51,7 +53,7 @@ func main() {
 
 	e := echo.New()
 	e.Use(middleware.CORS())
-
+	e.Validator = validator.New()
 	categoryRepo := rCategory.New(mongo.Database)
 	categoryUC := uCategoryModule.New(categoryRepo)
 	dCategoryHandler := dCategoryHttp.New(categoryUC)
@@ -59,7 +61,7 @@ func main() {
 
 	userRepo := rUser.New(mongo.Database)
 	mockRepo := rRole.New(mongo.Database)
-	userUC := uUserModule.New(userRepo, mockRepo)
+	userUC := uUserModule.New(userRepo, mockRepo, aws_s3)
 	dUserHandler := dUserHttp.New(userUC, rd)
 	dUserHttp.SetRoute(e, dUserHandler, rd)
 

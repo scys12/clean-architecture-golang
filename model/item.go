@@ -5,7 +5,7 @@ import (
 )
 
 type Item struct {
-	ID          primitive.ObjectID `bson:"_id" json:"id"`
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Name        string             `bson:"name" json:"name"`
 	Description string             `bson:"description" json:"description"`
 	Price       int                `bson:"price" json:"price"`
