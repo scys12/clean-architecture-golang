@@ -24,7 +24,10 @@ func New(usecase uUser.Usecase, redis session.SessionStore) dUser.Delivery {
 }
 
 func SetRoute(e *echo.Echo, handler dUser.Delivery, redis session.SessionStore) {
-	e.POST("/auth/signin", handler.AuthenticateUser)
-	e.POST("/auth/register", handler.RegisterUser)
-	e.PUT("/user/profile", middleware.SessionMiddleware(redis, model.ROLE_USER)(handler.EditUserProfile))
+	auth := e.Group("/auth")
+	auth.POST("/signin", handler.AuthenticateUser)
+	auth.POST("/register", handler.RegisterUser)
+	user := e.Group("/user/profile", middleware.SessionMiddleware(redis, model.ROLE_USER))
+	user.PUT("", handler.EditUserProfile)
+	e.GET("/user/profile/:username", handler.GetUserProfile)
 }

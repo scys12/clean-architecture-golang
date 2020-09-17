@@ -12,6 +12,7 @@ type Usecase interface {
 	AuthenticateUser(context.Context, *request.LoginRequest) (*Response, error)
 	RegisterUser(context.Context, *request.RegisterRequest) error
 	EditUserProfile(context.Context, *request.ProfileRequest) (*Response, error)
+	GetUserProfile(context.Context, string) (*Response, error)
 }
 
 type Response struct {

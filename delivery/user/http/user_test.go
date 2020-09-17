@@ -258,3 +258,51 @@ func TestEditProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestGetUserProfile(t *testing.T) {
+	tts := []struct {
+		name               string
+		username           string
+		response           *user.Response
+		expectedResultCode int
+		err                error
+	}{
+		{
+			name:     "success get another user profile",
+			username: "testing",
+			response: &user.Response{
+				Username: "testing",
+			},
+			expectedResultCode: http.StatusOK,
+			err:                nil,
+		},
+		{
+			name:     "failed get another user profile",
+			username: "",
+			response: &user.Response{
+				Username: "",
+			},
+			expectedResultCode: http.StatusInternalServerError,
+			err:                errors.New("failed"),
+		},
+	}
+	for _, tt := range tts {
+		t.Run(tt.name, func(t *testing.T) {
+			e := echo.New()
+			req, err := http.NewRequest(echo.GET, "/user/profile/:username", strings.NewReader(""))
+			assert.NoError(t, err)
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+			c.SetParamNames("username")
+			c.SetParamValues(tt.username)
+			mockSession := new(sessMocks.SessionStore)
+			mockUserUCase := new(mocks.Usecase)
+			mockUserUCase.On("GetUserProfile", c.Request().Context(), tt.username).Return(tt.response, tt.err)
+			handler := uHttp.New(mockUserUCase, mockSession)
+			uHttp.SetRoute(e, handler, mockSession)
+
+			err = handler.GetUserProfile(c)
+			assert.Equal(t, tt.expectedResultCode, rec.Code)
+		})
+	}
+}

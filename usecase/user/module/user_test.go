@@ -170,3 +170,49 @@ func TestEditProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestGetUserProfile(t *testing.T) {
+	tts := []struct {
+		name                string
+		username            string
+		response            *user.Response
+		err                 error
+		expectedUserAuth    *model.UserAuth
+		expectedUserProfile *model.UserProfile
+	}{
+		{
+			name:     "Success get user profile",
+			username: "testing",
+			response: &user.Response{
+				Username: "testing",
+			},
+			err: nil,
+			expectedUserAuth: &model.UserAuth{
+				Username: "testing",
+			},
+			expectedUserProfile: &model.UserProfile{},
+		},
+		{
+			name:                "Failed get user profile",
+			username:            "",
+			response:            nil,
+			err:                 errors.New("failed"),
+			expectedUserAuth:    &model.UserAuth{},
+			expectedUserProfile: &model.UserProfile{},
+		},
+	}
+	for _, tt := range tts {
+		t.Run(tt.name, func(t *testing.T) {
+			mockAWS := new(mocks.S3Store)
+			mockUserRepo := new(uMock.Repository)
+			mockRoleRepo := new(rMock.Repository)
+
+			filter := make(map[string]interface{})
+			filter["username"] = tt.username
+			mockUserRepo.On("GetUserAuthenticateData", mock.Anything, filter).Return(tt.expectedUserAuth, tt.expectedUserProfile, tt.err)
+			userUC := module.New(mockUserRepo, mockRoleRepo, mockAWS)
+			actualResponse, _ := userUC.GetUserProfile(context.TODO(), tt.username)
+			assert.Equal(t, actualResponse, tt.response)
+		})
+	}
+}

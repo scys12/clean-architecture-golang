@@ -62,6 +62,29 @@ func (_m *Usecase) EditUserProfile(_a0 context.Context, _a1 *request.ProfileRequ
 	return r0, r1
 }
 
+// GetUserProfile provides a mock function with given fields: _a0, _a1
+func (_m *Usecase) GetUserProfile(_a0 context.Context, _a1 string) (*user.Response, error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 *user.Response
+	if rf, ok := ret.Get(0).(func(context.Context, string) *user.Response); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*user.Response)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // RegisterUser provides a mock function with given fields: _a0, _a1
 func (_m *Usecase) RegisterUser(_a0 context.Context, _a1 *request.RegisterRequest) error {
 	ret := _m.Called(_a0, _a1)

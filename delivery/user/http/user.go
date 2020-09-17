@@ -67,3 +67,13 @@ func (d *delivery) EditUserProfile(c echo.Context) error {
 	}
 	return response.OK(c, user)
 }
+
+func (d *delivery) GetUserProfile(c echo.Context) error {
+	ctx := c.Request().Context()
+	username := c.Param("username")
+	user, err := d.usecase.GetUserProfile(ctx, username)
+	if err != nil {
+		return response.Error(c, http.StatusInternalServerError, err)
+	}
+	return response.OK(c, user)
+}

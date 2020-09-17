@@ -110,3 +110,24 @@ func (u *usecase) EditUserProfile(ctx context.Context, req *request.ProfileReque
 		Phone:    userProfile.Phone,
 	}, err
 }
+
+func (u *usecase) GetUserProfile(ctx context.Context, username string) (*user.Response, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	filter := make(map[string]interface{})
+	filter["username"] = username
+	userAuth, userProfile, err := u.userRepo.GetUserAuthenticateData(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return &user.Response{
+		ID:       userAuth.ID,
+		Email:    userAuth.Email,
+		Username: userAuth.Username,
+		RoleName: userAuth.Role.Name,
+		Image:    userProfile.Image,
+		Location: userProfile.Location,
+		Name:     userProfile.Name,
+		Phone:    userProfile.Phone,
+	}, err
+}
