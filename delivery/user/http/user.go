@@ -11,6 +11,13 @@ import (
 	"github.com/scys12/clean-architecture-golang/pkg/payload/response"
 )
 
+const (
+	fileParam = "image"
+	sessionID = "sessionID"
+	userID    = "userID"
+	userName  = "username"
+)
+
 func (d *delivery) AuthenticateUser(c echo.Context) error {
 	ctx := c.Request().Context()
 	req := new(request.LoginRequest)
@@ -21,7 +28,10 @@ func (d *delivery) AuthenticateUser(c echo.Context) error {
 	if err != nil {
 		return response.Error(c, http.StatusNotFound, err)
 	}
-	d.redis.CreateSession(c, user)
+	err = d.redis.CreateSession(c, user)
+	if err != nil {
+		return response.Error(c, http.StatusInternalServerError, err)
+	}
 	return response.OK(c, user)
 }
 
@@ -42,19 +52,17 @@ func (d *delivery) RegisterUser(c echo.Context) error {
 }
 
 func (d *delivery) EditUserProfile(c echo.Context) error {
-	const fileParam = "image"
 	ctx := c.Request().Context()
 	req := new(request.ProfileRequest)
-	req.ID = c.Get("userID").(primitive.ObjectID)
-	form, err := util.BindingFormValue(c)
+	req.ID = c.Get(userID).(primitive.ObjectID)
+	form, image, err := util.HandlingMultipartForm(c, fileParam)
 	if err != nil {
 		return response.Error(c, http.StatusBadRequest, err)
 	}
-	file, err := util.BindingFormFile(c, fileParam)
-	if err != nil {
-		return response.Error(c, http.StatusBadRequest, err)
-	}
-	err = util.DecodeForm(req, form, file)
+	req.Image = image
+	config := util.NewWeaklyTypedConfigDecoder()
+	config.Result = req
+	err = util.DecodeForm(config, form)
 	if err != nil {
 		return response.Error(c, http.StatusBadRequest, err)
 	}
@@ -70,10 +78,19 @@ func (d *delivery) EditUserProfile(c echo.Context) error {
 
 func (d *delivery) GetUserProfile(c echo.Context) error {
 	ctx := c.Request().Context()
-	username := c.Param("username")
+	username := c.Param(userName)
 	user, err := d.usecase.GetUserProfile(ctx, username)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err)
 	}
 	return response.OK(c, user)
+}
+
+func (d *delivery) Logout(c echo.Context) error {
+	ID := c.Get(sessionID).(string)
+	err := d.redis.Del(ID)
+	if err != nil {
+		return response.Error(c, http.StatusInternalServerError, err)
+	}
+	return response.OK(c, nil)
 }

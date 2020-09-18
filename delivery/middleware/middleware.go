@@ -15,18 +15,18 @@ func SessionMiddleware(s session.SessionStore, role string) echo.MiddlewareFunc 
 		return func(ctx echo.Context) error {
 			cookie, err := ctx.Cookie("sessionID")
 			if err != nil {
-				response.Error(ctx, http.StatusUnauthorized, err)
+				err = response.Error(ctx, http.StatusUnauthorized, err)
 				return err
 			}
 			sessionID := cookie.Value
 			sess, err := s.Get(sessionID)
 			if err != nil {
-				response.Error(ctx, http.StatusInternalServerError, err)
+				err = response.Error(ctx, http.StatusInternalServerError, err)
 				return err
 			}
 			if role != sess.UserRole {
-				response.Error(ctx, http.StatusUnauthorized, errors.New("Wrong authorization"))
-				return nil
+				err = response.Error(ctx, http.StatusUnauthorized, errors.New("Wrong authorization"))
+				return err
 			}
 			ctx.Set("sessionID", sessionID)
 			ctx.Set("userID", sess.UserID)

@@ -15,8 +15,7 @@ import (
 )
 
 const (
-	maxSize = int64(5120000)
-	bucket  = "sea-marketplace"
+	bucket = "sea-marketplace"
 )
 
 type FileParam struct {
@@ -38,7 +37,10 @@ func (awsS3 *awsClient) UploadFileToS3(fileParam FileParam) (string, error) {
 	defer src.Close()
 	size := fileParam.FileHeader.Size
 	buffer := make([]byte, size)
-	src.Read(buffer)
+	_, err = src.Read(buffer)
+	if err != nil {
+		return "", err
+	}
 	var tempFileName string
 	if fileParam.FileURL != "" {
 		tempFileName = strings.Split(fileParam.FileURL, "s3.amazonaws.com/")[1]

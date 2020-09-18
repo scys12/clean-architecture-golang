@@ -106,7 +106,7 @@ func TestAuthenticate(t *testing.T) {
 			handler := uHttp.New(mockUserUCase, mockSession)
 			uHttp.SetRoute(e, handler, mockSession)
 
-			err = handler.AuthenticateUser(c)
+			_ = handler.AuthenticateUser(c)
 			assert.Equal(t, tt.resultCode, rec.Code)
 		})
 	}
@@ -176,7 +176,7 @@ func TestRegisterUser(t *testing.T) {
 			handler := uHttp.New(mockUserUCase, mockSession)
 			uHttp.SetRoute(e, handler, mockSession)
 
-			err = handler.RegisterUser(c)
+			_ = handler.RegisterUser(c)
 			assert.Equal(t, tt.resultCode, rec.Code)
 		})
 	}
@@ -253,7 +253,7 @@ func TestEditProfile(t *testing.T) {
 			handler := uHttp.New(mockUserUCase, mockSession)
 			uHttp.SetRoute(e, handler, mockSession)
 
-			err = handler.EditUserProfile(c)
+			_ = handler.EditUserProfile(c)
 			assert.Equal(t, tt.resultCode, rec.Code)
 		})
 	}
@@ -301,7 +301,7 @@ func TestGetUserProfile(t *testing.T) {
 			handler := uHttp.New(mockUserUCase, mockSession)
 			uHttp.SetRoute(e, handler, mockSession)
 
-			err = handler.GetUserProfile(c)
+			_ = handler.GetUserProfile(c)
 			assert.Equal(t, tt.expectedResultCode, rec.Code)
 		})
 	}

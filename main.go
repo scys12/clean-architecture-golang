@@ -7,10 +7,16 @@ import (
 
 	"github.com/scys12/clean-architecture-golang/pkg/aws"
 
+	dCategoryHttp "github.com/scys12/clean-architecture-golang/delivery/category/http"
+	dItemHttp "github.com/scys12/clean-architecture-golang/delivery/item/http"
 	dUserHttp "github.com/scys12/clean-architecture-golang/delivery/user/http"
 
+	uCategoryModule "github.com/scys12/clean-architecture-golang/usecase/category/module"
+	uItemModule "github.com/scys12/clean-architecture-golang/usecase/item/module"
 	uUserModule "github.com/scys12/clean-architecture-golang/usecase/user/module"
 
+	rCategory "github.com/scys12/clean-architecture-golang/repository/category/module"
+	rItem "github.com/scys12/clean-architecture-golang/repository/item/module"
 	rRole "github.com/scys12/clean-architecture-golang/repository/role/module"
 	rUser "github.com/scys12/clean-architecture-golang/repository/user/module"
 
@@ -19,10 +25,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 
-	dCategoryHttp "github.com/scys12/clean-architecture-golang/delivery/category/http"
 	"github.com/scys12/clean-architecture-golang/pkg/database"
-	rCategory "github.com/scys12/clean-architecture-golang/repository/category/module"
-	uCategoryModule "github.com/scys12/clean-architecture-golang/usecase/category/module"
 
 	"github.com/scys12/clean-architecture-golang/pkg/config"
 
@@ -54,16 +57,22 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.CORS())
 	e.Validator = validator.New()
+
 	categoryRepo := rCategory.New(mongo.Database)
 	categoryUC := uCategoryModule.New(categoryRepo)
 	dCategoryHandler := dCategoryHttp.New(categoryUC)
 	dCategoryHttp.SetRoute(e, dCategoryHandler)
 
 	userRepo := rUser.New(mongo.Database)
-	mockRepo := rRole.New(mongo.Database)
-	userUC := uUserModule.New(userRepo, mockRepo, aws_s3)
+	roleRepo := rRole.New(mongo.Database)
+	userUC := uUserModule.New(userRepo, roleRepo, aws_s3)
 	dUserHandler := dUserHttp.New(userUC, rd)
 	dUserHttp.SetRoute(e, dUserHandler, rd)
+
+	itemRepo := rItem.New(mongo.Database)
+	itemUC := uItemModule.New(itemRepo, aws_s3)
+	dItemHandler := dItemHttp.New(itemUC, rd)
+	dItemHttp.SetRoute(e, dItemHandler, rd)
 
 	log.Fatal(e.Start(":8080"))
 }

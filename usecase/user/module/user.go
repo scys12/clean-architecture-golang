@@ -65,8 +65,8 @@ func (u *usecase) RegisterUser(c context.Context, req *request.RegisterRequest) 
 	return err
 }
 
-func (u *usecase) EditUserProfile(ctx context.Context, req *request.ProfileRequest) (*user.Response, error) {
-	ctx, cancel := context.WithTimeout(ctx, timeout)
+func (u *usecase) EditUserProfile(c context.Context, req *request.ProfileRequest) (*user.Response, error) {
+	ctx, cancel := context.WithTimeout(c, timeout)
 	defer cancel()
 
 	filter := make(map[string]interface{})
@@ -111,8 +111,8 @@ func (u *usecase) EditUserProfile(ctx context.Context, req *request.ProfileReque
 	}, err
 }
 
-func (u *usecase) GetUserProfile(ctx context.Context, username string) (*user.Response, error) {
-	ctx, cancel := context.WithTimeout(ctx, timeout)
+func (u *usecase) GetUserProfile(c context.Context, username string) (*user.Response, error) {
+	ctx, cancel := context.WithTimeout(c, timeout)
 	defer cancel()
 	filter := make(map[string]interface{})
 	filter["username"] = username

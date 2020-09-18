@@ -9,4 +9,5 @@ type Delivery interface {
 	RegisterUser(echo.Context) error
 	EditUserProfile(echo.Context) error
 	GetUserProfile(echo.Context) error
+	Logout(echo.Context) error
 }

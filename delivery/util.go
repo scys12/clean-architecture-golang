@@ -7,7 +7,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/mitchellh/mapstructure"
-	"github.com/scys12/clean-architecture-golang/pkg/payload/request"
 )
 
 func BindingFormValue(e echo.Context) (map[string]interface{}, error) {
@@ -54,11 +53,15 @@ func checkFileMimeType(fileHeader *multipart.FileHeader) error {
 	return nil
 }
 
-func DecodeForm(req *request.ProfileRequest, form map[string]interface{}, file *multipart.FileHeader) error {
+func NewWeaklyTypedConfigDecoder() *mapstructure.DecoderConfig {
 	config := &mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
-		Result:           &req,
 	}
+	return config
+}
+
+func DecodeForm(config *mapstructure.DecoderConfig, form map[string]interface{}) error {
+
 	decoder, err := mapstructure.NewDecoder(config)
 	if err != nil {
 		return err
@@ -67,6 +70,17 @@ func DecodeForm(req *request.ProfileRequest, form map[string]interface{}, file *
 	if err != nil {
 		return err
 	}
-	req.Image = file
 	return nil
+}
+
+func HandlingMultipartForm(c echo.Context, fileParam string) (map[string]interface{}, *multipart.FileHeader, error) {
+	form, err := BindingFormValue(c)
+	if err != nil {
+		return nil, nil, err
+	}
+	image, err := BindingFormFile(c, fileParam)
+	if err != nil {
+		return nil, nil, err
+	}
+	return form, image, nil
 }

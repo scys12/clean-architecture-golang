@@ -25,6 +25,7 @@ type SessionStore interface {
 	Get(string) (Session, error)
 	Set(string, Session) error
 	Connect() redis.Conn
+	Del(key string) error
 }
 
 func (r *redisClient) Connect() redis.Conn {
@@ -40,8 +41,8 @@ func (r *redisClient) CreateSession(ctx echo.Context, user *user.Response) error
 		MaxAge:   86400 * 7,
 	})
 	ctx.Set("sessionID", sessionID)
-	r.Set(sessionID, Session{UserID: user.ID, UserRole: user.RoleName})
-	return nil
+	err := r.Set(sessionID, Session{UserID: user.ID, UserRole: user.RoleName})
+	return err
 }
 
 func (r *redisClient) Get(sess_id string) (Session, error) {
@@ -62,6 +63,13 @@ func (r *redisClient) Set(sess_id string, session Session) error {
 		return err
 	}
 	if _, err = r.conn.Do("SET", sess_id, s); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *redisClient) Del(key string) error {
+	if _, err := r.conn.Do("DEL", key); err != nil {
 		return err
 	}
 	return nil

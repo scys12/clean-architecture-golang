@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/scys12/clean-architecture-golang/repository/user"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,11 +30,11 @@ func New(db *mongo.Database) user.Repository {
 func createIndexes(db *mongo.Database) {
 	models := []mongo.IndexModel{
 		{
-			Keys:    bson.D{{"username", 1}},
+			Keys:    bson.D{primitive.E{Key: "username", Value: 1}},
 			Options: options.Index().SetUnique(true),
 		},
 		{
-			Keys:    bson.D{{"email", 1}},
+			Keys:    bson.D{primitive.E{Key: "username", Value: 1}},
 			Options: options.Index().SetUnique(true),
 		},
 	}

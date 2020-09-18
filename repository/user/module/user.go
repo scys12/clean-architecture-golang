@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/scys12/clean-architecture-golang/model"
 )
@@ -17,7 +18,7 @@ func (r *repository) GetUserAuthenticateData(ctx context.Context, filter map[str
 	if err != nil {
 		return nil, nil, err
 	}
-	return userAuth, userProfile, nil
+	return
 }
 
 func (r *repository) RegisterUser(ctx context.Context, user model.UserAuth) (err error) {
@@ -26,8 +27,8 @@ func (r *repository) RegisterUser(ctx context.Context, user model.UserAuth) (err
 }
 
 func (r *repository) EditUserProfile(ctx context.Context, user model.UserProfile) (err error) {
-	filter := bson.D{{"_id", user.ID}}
-	update := bson.D{{"$set", user}}
+	filter := bson.D{primitive.E{Key: "_id", Value: user.ID}}
+	update := bson.D{primitive.E{Key: "$set", Value: user}}
 	err = r.db.Collection(r.collection).FindOneAndUpdate(ctx, filter, update).Err()
-	return err
+	return
 }

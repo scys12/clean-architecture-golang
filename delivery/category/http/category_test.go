@@ -61,7 +61,7 @@ func TestGetCategories(t *testing.T) {
 			c := e.NewContext(req, rec)
 			handler := catHttp.New(mockCatUCase)
 			catHttp.SetRoute(e, handler)
-			err = handler.GetAllCategories(c)
+			_ = handler.GetAllCategories(c)
 			assert.Equal(t, tt.resultCode, rec.Code)
 			mockCatUCase.AssertExpectations(t)
 		})

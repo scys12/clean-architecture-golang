@@ -26,3 +26,13 @@ type ProfileRequest struct {
 	Phone    string                `json:"phone,omitempty" validate:"max=14"`
 	Image    *multipart.FileHeader `json:"image,omitempty"`
 }
+
+type ItemRequest struct {
+	ID          primitive.ObjectID    `json:"id,omitempty"`
+	Name        string                `json:"name" validate:"required,max=25"`
+	Description string                `json:"description" validate:"required,max=100"`
+	Price       int                   `json:"price" validate:"required,numeric"`
+	UserID      primitive.ObjectID    `json:"user_id"`
+	Category    model.Category        `json:"category" validate:"required"`
+	Image       *multipart.FileHeader `json:"image" validate:"required"`
+}

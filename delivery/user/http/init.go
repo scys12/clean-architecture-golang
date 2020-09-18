@@ -29,5 +29,5 @@ func SetRoute(e *echo.Echo, handler dUser.Delivery, redis session.SessionStore) 
 	auth.POST("/register", handler.RegisterUser)
 	user := e.Group("/user/profile", middleware.SessionMiddleware(redis, model.ROLE_USER))
 	user.PUT("", handler.EditUserProfile)
-	e.GET("/user/profile/:username", handler.GetUserProfile)
+	user.GET("/:username", handler.GetUserProfile)
 }

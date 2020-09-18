@@ -11,4 +11,5 @@ type Item struct {
 	Price       int                `bson:"price" json:"price"`
 	UserID      primitive.ObjectID `bson:"user_id" json:"user_id"`
 	Category    Category           `bson:"category" json:"category"`
+	Image       string             `bson:"image" json:"image"`
 }
