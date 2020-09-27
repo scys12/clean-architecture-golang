@@ -2,13 +2,12 @@ package session
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/scys12/clean-architecture-golang/usecase/user"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
-
-	"github.com/labstack/echo/v4"
 
 	"github.com/google/uuid"
 
@@ -21,9 +20,9 @@ type Session struct {
 }
 
 type SessionStore interface {
-	CreateSession(echo.Context, *user.Response) error
+	CreateSession(*user.Response) error
 	Get(string) (Session, error)
-	Set(string, Session) error
+	Set(string, string, Session) error
 	Connect() redis.Conn
 	Del(key string) error
 }
@@ -32,17 +31,17 @@ func (r *redisClient) Connect() redis.Conn {
 	return r.conn
 }
 
-func (r *redisClient) CreateSession(ctx echo.Context, user *user.Response) error {
+func (r *redisClient) CreateSession(user *user.Response) error {
 	sessionID := uuid.New().String()
-	ctx.SetCookie(&http.Cookie{
+	cookie := &http.Cookie{
 		Name:     "sessionID",
 		Value:    sessionID,
 		HttpOnly: true,
 		MaxAge:   86400 * 7,
-	})
-	ctx.Set("sessionID", sessionID)
-	err := r.Set(sessionID, Session{UserID: user.ID, UserRole: user.RoleName})
-	return err
+	}
+	r.Set("HSET", fmt.Sprintf("user:%v", user.ID), "session")
+	r.Set("HSET", sessionID, user.ID)
+	return nil
 }
 
 func (r *redisClient) Get(sess_id string) (Session, error) {
@@ -57,12 +56,12 @@ func (r *redisClient) Get(sess_id string) (Session, error) {
 	return session, nil
 }
 
-func (r *redisClient) Set(sess_id string, session Session) error {
-	s, err := json.Marshal(session)
+func (r *redisClient) Set(type_data, field string, data ...interface{}) error {
+	s, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
-	if _, err = r.conn.Do("SET", sess_id, s); err != nil {
+	if _, err = r.conn.Do(type_data, sess_id, s); err != nil {
 		return err
 	}
 	return nil

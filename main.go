@@ -65,8 +65,8 @@ func main() {
 
 	userRepo := rUser.New(mongo.Database)
 	roleRepo := rRole.New(mongo.Database)
-	userUC := uUserModule.New(userRepo, roleRepo, aws_s3)
-	dUserHandler := dUserHttp.New(userUC, rd)
+	userUC := uUserModule.New(userRepo, roleRepo, aws_s3, rd)
+	dUserHandler := dUserHttp.New(userUC)
 	dUserHttp.SetRoute(e, dUserHandler, rd)
 
 	itemRepo := rItem.New(mongo.Database)

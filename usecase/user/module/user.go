@@ -31,6 +31,7 @@ func (u *usecase) AuthenticateUser(c context.Context, req *request.LoginRequest)
 	if passwordCheck != nil {
 		return nil, passwordCheck
 	}
+	u.session.CreateSession()
 	return &user.Response{
 		ID:       userAuth.ID,
 		Email:    userAuth.Email,
@@ -111,8 +112,8 @@ func (u *usecase) EditUserProfile(c context.Context, req *request.ProfileRequest
 	}, err
 }
 
-func (u *usecase) GetUserProfile(c context.Context, username string) (*user.Response, error) {
-	ctx, cancel := context.WithTimeout(c, timeout)
+func (u *usecase) GetUserProfile(ctx context.Context, username string) (*user.Response, error) {
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 	filter := make(map[string]interface{})
 	filter["username"] = username

@@ -12,13 +12,11 @@ import (
 
 type delivery struct {
 	usecase uUser.Usecase
-	redis   session.SessionStore
 }
 
-func New(usecase uUser.Usecase, redis session.SessionStore) dUser.Delivery {
+func New(usecase uUser.Usecase) dUser.Delivery {
 	handler := &delivery{
 		usecase: usecase,
-		redis:   redis,
 	}
 	return handler
 }

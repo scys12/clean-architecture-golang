@@ -94,7 +94,6 @@ func TestAuthenticate(t *testing.T) {
 			mockUserUCase.On("AuthenticateUser", mock.Anything, tt.loginRequest).Return(tt.expectedMockResponse, tt.err)
 
 			mockSession := new(sessMocks.SessionStore)
-			mockSession.On("CreateSession", mock.Anything, tt.expectedMockResponse).Return(tt.err)
 
 			req, err := http.NewRequest(echo.POST, "/auth/signin", strings.NewReader(tt.requestBody))
 			assert.NoError(t, err)
@@ -103,7 +102,7 @@ func TestAuthenticate(t *testing.T) {
 			e := echo.New()
 			rec := httptest.NewRecorder()
 			c := e.NewContext(req, rec)
-			handler := uHttp.New(mockUserUCase, mockSession)
+			handler := uHttp.New(mockUserUCase)
 			uHttp.SetRoute(e, handler, mockSession)
 
 			_ = handler.AuthenticateUser(c)
@@ -173,7 +172,7 @@ func TestRegisterUser(t *testing.T) {
 			mockUserUCase := new(mocks.Usecase)
 			mockUserUCase.On("RegisterUser", c.Request().Context(), tt.registerReq).Return(tt.err)
 
-			handler := uHttp.New(mockUserUCase, mockSession)
+			handler := uHttp.New(mockUserUCase)
 			uHttp.SetRoute(e, handler, mockSession)
 
 			_ = handler.RegisterUser(c)
@@ -250,7 +249,7 @@ func TestEditProfile(t *testing.T) {
 			mockUserUCase := new(mocks.Usecase)
 			mockUserUCase.On("EditUserProfile", c.Request().Context(), tt.profileReq).Return(tt.expectedResponse, tt.err)
 
-			handler := uHttp.New(mockUserUCase, mockSession)
+			handler := uHttp.New(mockUserUCase)
 			uHttp.SetRoute(e, handler, mockSession)
 
 			_ = handler.EditUserProfile(c)
@@ -298,10 +297,10 @@ func TestGetUserProfile(t *testing.T) {
 			mockSession := new(sessMocks.SessionStore)
 			mockUserUCase := new(mocks.Usecase)
 			mockUserUCase.On("GetUserProfile", c.Request().Context(), tt.username).Return(tt.response, tt.err)
-			handler := uHttp.New(mockUserUCase, mockSession)
+			handler := uHttp.New(mockUserUCase)
 			uHttp.SetRoute(e, handler, mockSession)
 
-			_ = handler.GetUserProfile(c)
+			err = handler.GetUserProfile(c)
 			assert.Equal(t, tt.expectedResultCode, rec.Code)
 		})
 	}

@@ -28,10 +28,6 @@ func (d *delivery) AuthenticateUser(c echo.Context) error {
 	if err != nil {
 		return response.Error(c, http.StatusNotFound, err)
 	}
-	err = d.redis.CreateSession(c, user)
-	if err != nil {
-		return response.Error(c, http.StatusInternalServerError, err)
-	}
 	return response.OK(c, user)
 }
 
