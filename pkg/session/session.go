@@ -15,37 +15,60 @@ import (
 )
 
 type Session struct {
-	UserID   primitive.ObjectID `json:"user_id"`
-	UserRole string             `json:"user_role"`
+	UserID   primitive.ObjectID `json:"user_id" redis:"user_id"`
+	UserRole string             `json:"user_role" redis:"user_role"`
 }
 
 type SessionStore interface {
-	CreateSession(*user.Response) error
+	CreateSession(*user.Response) (*http.Cookie, error)
 	Get(string) (Session, error)
-	Set(string, string, Session) error
+	Set(fieldStore) error
 	Connect() redis.Conn
 	Del(key string) error
 }
+
+type fieldStore struct {
+	typeField string
+	dataField []interface{}
+}
+
+const (
+	session_str   = "session"
+	role_str      = "role"
+	sessionID_str = "sessionID"
+)
 
 func (r *redisClient) Connect() redis.Conn {
 	return r.conn
 }
 
-func (r *redisClient) CreateSession(user *user.Response) error {
+func (r *redisClient) CreateSession(user *user.Response) (*http.Cookie, error) {
 	sessionID := uuid.New().String()
+	sess := map[string]interface{}{
+		session_str: sessionID,
+		role_str:    user.RoleName,
+	}
+	data := redis.Args{}.Add(fmt.Sprintf("user:%v", user.ID)).AddFlat(sess)
+	r.Set(fieldStore{typeField: "HMSET", dataField: 'data'})
+	sess = map[string]interface{}{
+		sessionID: user.ID,
+	}
+	data = redis.Args{}.Add(session_str).AddFlat(sess)
+	r.Set(fieldStore{typeField: "HSET", dataField: data})
+
 	cookie := &http.Cookie{
-		Name:     "sessionID",
+		Name:     sessionID_str,
 		Value:    sessionID,
 		HttpOnly: true,
 		MaxAge:   86400 * 7,
 	}
-	r.Set("HSET", fmt.Sprintf("user:%v", user.ID), "session")
-	r.Set("HSET", sessionID, user.ID)
-	return nil
+
+	return cookie, nil
 }
 
 func (r *redisClient) Get(sess_id string) (Session, error) {
 	var session Session
+	redis.Strings
 	id, err := redis.Bytes(r.conn.Do("GET", sess_id))
 	if err != nil {
 		return session, err
@@ -56,12 +79,8 @@ func (r *redisClient) Get(sess_id string) (Session, error) {
 	return session, nil
 }
 
-func (r *redisClient) Set(type_data, field string, data ...interface{}) error {
-	s, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-	if _, err = r.conn.Do(type_data, sess_id, s); err != nil {
+func (r *redisClient) Set(dataStore fieldStore) error {
+	if _, err := r.conn.Do(dataStore.typeField, dataStore.dataField...); err != nil {
 		return err
 	}
 	return nil

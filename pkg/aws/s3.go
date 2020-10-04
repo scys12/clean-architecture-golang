@@ -27,6 +27,17 @@ type FileParam struct {
 
 type S3Store interface {
 	UploadFileToS3(FileParam) (string, error)
+	setUploadFileName(FileParam) string
+}
+
+func (awsS3 *awsClient) setUploadFileName(fileParam FileParam) string {
+	var tempFileName string
+	if fileParam.FileURL != "" {
+		tempFileName = strings.Split(fileParam.FileURL, "s3.amazonaws.com/")[1]
+	} else {
+		tempFileName = fmt.Sprintf("%v/%v-%v%v", fileParam.FolderName, fileParam.UserID.Hex(), uuid.New().String(), filepath.Ext(fileParam.FileHeader.Filename))
+	}
+	return tempFileName
 }
 
 func (awsS3 *awsClient) UploadFileToS3(fileParam FileParam) (string, error) {
@@ -41,12 +52,7 @@ func (awsS3 *awsClient) UploadFileToS3(fileParam FileParam) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	var tempFileName string
-	if fileParam.FileURL != "" {
-		tempFileName = strings.Split(fileParam.FileURL, "s3.amazonaws.com/")[1]
-	} else {
-		tempFileName = fmt.Sprintf("%v/%v-%v%v", fileParam.FolderName, fileParam.UserID.Hex(), uuid.New().String(), filepath.Ext(fileParam.FileHeader.Filename))
-	}
+	tempFileName := awsS3.setUploadFileName(fileParam)
 	_, err = s3.New(awsS3.session).PutObject(&s3.PutObjectInput{
 		Bucket:               aws.String(bucket),
 		Key:                  aws.String(tempFileName),

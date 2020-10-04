@@ -21,7 +21,7 @@ services:
             - 27017:27017
         volumes: 
             - mongodb_data:/data/db
-            - ./pkg/database/migration/init.sh:/docker-entrypoint-initdb.d/init.sh
+            - ./pkg/database/migration/init.js:/docker-entrypoint-initdb.d/init.js
         networks:
             - marketplace_network
     

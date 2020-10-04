@@ -34,7 +34,7 @@ func createIndexes(db *mongo.Database) {
 			Options: options.Index().SetUnique(true),
 		},
 		{
-			Keys:    bson.D{primitive.E{Key: "username", Value: 1}},
+			Keys:    bson.D{primitive.E{Key: "email", Value: 1}},
 			Options: options.Index().SetUnique(true),
 		},
 	}
