@@ -1,11 +1,9 @@
 package session
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
 
-	"github.com/scys12/clean-architecture-golang/usecase/user"
+	"github.com/scys12/clean-architecture-golang/model"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -15,79 +13,97 @@ import (
 )
 
 type Session struct {
-	UserID   primitive.ObjectID `json:"user_id" redis:"user_id"`
-	UserRole string             `json:"user_role" redis:"user_role"`
+	SessionID string             `json:"session_id" redis:"session_id"`
+	UserID    primitive.ObjectID `json:"user_id" redis:"user_id"`
+	UserRole  string             `json:"user_role" redis:"user_role"`
 }
 
 type SessionStore interface {
-	CreateSession(*user.Response) (*http.Cookie, error)
-	Get(string) (Session, error)
-	Set(fieldStore) error
+	CreateSession(*model.UserAuth) (string, error)
+	Get(FieldStore) (interface{}, error)
+	Set(FieldStore) error
 	Connect() redis.Conn
-	Del(key string) error
+	Del(FieldStore) error
+	GetSession(string) (*Session, error)
 }
 
-type fieldStore struct {
-	typeField string
-	dataField []interface{}
+type FieldStore struct {
+	TypeField string
+	DataField []interface{}
 }
 
 const (
-	session_str   = "session"
-	role_str      = "role"
-	sessionID_str = "sessionID"
+	sessionStr = "session"
+	roleStr    = "role"
 )
 
 func (r *redisClient) Connect() redis.Conn {
 	return r.conn
 }
 
-func (r *redisClient) CreateSession(user *user.Response) (*http.Cookie, error) {
+func (r *redisClient) CreateSession(user *model.UserAuth) (string, error) {
 	sessionID := uuid.New().String()
 	sess := map[string]interface{}{
-		session_str: sessionID,
-		role_str:    user.RoleName,
+		sessionStr: sessionID,
+		roleStr:    user.Role.Name,
 	}
-	data := redis.Args{}.Add(fmt.Sprintf("user:%v", user.ID)).AddFlat(sess)
-	r.Set(fieldStore{typeField: "HMSET", dataField: 'data'})
-	sess = map[string]interface{}{
-		sessionID: user.ID,
+	config := map[string]string{"key": fmt.Sprintf("user:%v", user.ID.Hex()), "command": "HMSET"}
+	if err := r.initializeAndSetData(config, sess); err != nil {
+		return "", err
 	}
-	data = redis.Args{}.Add(session_str).AddFlat(sess)
-	r.Set(fieldStore{typeField: "HSET", dataField: data})
-
-	cookie := &http.Cookie{
-		Name:     sessionID_str,
-		Value:    sessionID,
-		HttpOnly: true,
-		MaxAge:   86400 * 7,
+	auth := map[string]interface{}{
+		sessionID: user.ID.Hex(),
 	}
-
-	return cookie, nil
+	config = map[string]string{"key": sessionStr, "command": "HSET"}
+	if err := r.initializeAndSetData(config, auth); err != nil {
+		return "", err
+	}
+	return sessionID, nil
 }
 
-func (r *redisClient) Get(sess_id string) (Session, error) {
-	var session Session
-	redis.Strings
-	id, err := redis.Bytes(r.conn.Do("GET", sess_id))
+func (r *redisClient) initializeAndSetData(config map[string]string, data map[string]interface{}) error {
+	args := redis.Args{}.Add(config["key"]).AddFlat(data)
+	err := r.Set(FieldStore{TypeField: config["command"], DataField: args})
+	return err
+}
+
+func (r *redisClient) Get(dataStore FieldStore) (interface{}, error) {
+	data, err := r.conn.Do(dataStore.TypeField, dataStore.DataField...)
 	if err != nil {
-		return session, err
+		return nil, err
 	}
-	if err = json.Unmarshal(id, &session); err != nil {
-		return session, err
-	}
-	return session, nil
+	return data, nil
 }
 
-func (r *redisClient) Set(dataStore fieldStore) error {
-	if _, err := r.conn.Do(dataStore.typeField, dataStore.dataField...); err != nil {
+func (r *redisClient) GetSession(sessionID string) (*Session, error) {
+	userID, err := redis.String(r.conn.Do("HGET", "session", sessionID))
+	if err != nil {
+		return nil, err
+	}
+	auth, err := redis.StringMap(r.conn.Do("HGETALL", fmt.Sprintf("user:%v", userID)))
+	if err != nil {
+		return nil, err
+	}
+	newUserID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, err
+	}
+	return &Session{
+		UserID:    newUserID,
+		SessionID: auth[sessionStr],
+		UserRole:  auth[roleStr],
+	}, nil
+}
+
+func (r *redisClient) Set(dataStore FieldStore) error {
+	if _, err := r.conn.Do(dataStore.TypeField, dataStore.DataField...); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *redisClient) Del(key string) error {
-	if _, err := r.conn.Do("DEL", key); err != nil {
+func (r *redisClient) Del(dataStore FieldStore) error {
+	if _, err := r.conn.Do(dataStore.TypeField, dataStore.DataField...); err != nil {
 		return err
 	}
 	return nil

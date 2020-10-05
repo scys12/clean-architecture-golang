@@ -17,15 +17,15 @@ type Usecase struct {
 }
 
 // AuthenticateUser provides a mock function with given fields: _a0, _a1
-func (_m *Usecase) AuthenticateUser(_a0 context.Context, _a1 *request.LoginRequest) (*user.Response, error) {
+func (_m *Usecase) AuthenticateUser(_a0 context.Context, _a1 *request.LoginRequest) (*user.AuthenticateResponse, error) {
 	ret := _m.Called(_a0, _a1)
 
-	var r0 *user.Response
-	if rf, ok := ret.Get(0).(func(context.Context, *request.LoginRequest) *user.Response); ok {
+	var r0 *user.AuthenticateResponse
+	if rf, ok := ret.Get(0).(func(context.Context, *request.LoginRequest) *user.AuthenticateResponse); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*user.Response)
+			r0 = ret.Get(0).(*user.AuthenticateResponse)
 		}
 	}
 
@@ -83,6 +83,20 @@ func (_m *Usecase) GetUserProfile(_a0 context.Context, _a1 string) (*user.Respon
 	}
 
 	return r0, r1
+}
+
+// Logout provides a mock function with given fields: _a0, _a1, _a2
+func (_m *Usecase) Logout(_a0 context.Context, _a1 string, _a2 string) error {
+	ret := _m.Called(_a0, _a1, _a2)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(_a0, _a1, _a2)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // RegisterUser provides a mock function with given fields: _a0, _a1

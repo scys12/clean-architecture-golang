@@ -2,7 +2,10 @@ package module
 
 import (
 	"context"
+	"fmt"
 	"time"
+
+	"github.com/scys12/clean-architecture-golang/pkg/session"
 
 	"github.com/scys12/clean-architecture-golang/usecase/user"
 
@@ -16,7 +19,7 @@ import (
 
 const timeout = 10 * time.Second
 
-func (u *usecase) AuthenticateUser(c context.Context, req *request.LoginRequest) (*user.Response, error) {
+func (u *usecase) AuthenticateUser(c context.Context, req *request.LoginRequest) (*user.AuthenticateResponse, error) {
 	ctx, cancel := context.WithTimeout(c, timeout)
 	defer cancel()
 
@@ -31,18 +34,14 @@ func (u *usecase) AuthenticateUser(c context.Context, req *request.LoginRequest)
 	if passwordCheck != nil {
 		return nil, passwordCheck
 	}
-	u.session.CreateSession()
-	return &user.Response{
-		ID:       userAuth.ID,
-		Email:    userAuth.Email,
-		Username: userAuth.Username,
-		RoleName: userAuth.Role.Name,
-		Image:    userProfile.Image,
-		Location: userProfile.Location,
-		Name:     userProfile.Name,
-		Phone:    userProfile.Phone,
+	sessID, err := u.session.CreateSession(userAuth)
+	if err != nil {
+		return nil, err
+	}
+	return &user.AuthenticateResponse{
+		Response:  user.NewResponse(userAuth, userProfile),
+		SessionID: sessID,
 	}, nil
-
 }
 func (u *usecase) RegisterUser(c context.Context, req *request.RegisterRequest) error {
 	ctx, cancel := context.WithTimeout(c, timeout)
@@ -100,16 +99,7 @@ func (u *usecase) EditUserProfile(c context.Context, req *request.ProfileRequest
 	if err != nil {
 		return nil, err
 	}
-	return &user.Response{
-		ID:       userAuth.ID,
-		Email:    userAuth.Email,
-		Username: userAuth.Username,
-		RoleName: userAuth.Role.Name,
-		Image:    userProfile.Image,
-		Location: userProfile.Location,
-		Name:     userProfile.Name,
-		Phone:    userProfile.Phone,
-	}, err
+	return user.NewResponse(userAuth, userProfile), err
 }
 
 func (u *usecase) GetUserProfile(ctx context.Context, username string) (*user.Response, error) {
@@ -121,14 +111,24 @@ func (u *usecase) GetUserProfile(ctx context.Context, username string) (*user.Re
 	if err != nil {
 		return nil, err
 	}
-	return &user.Response{
-		ID:       userAuth.ID,
-		Email:    userAuth.Email,
-		Username: userAuth.Username,
-		RoleName: userAuth.Role.Name,
-		Image:    userProfile.Image,
-		Location: userProfile.Location,
-		Name:     userProfile.Name,
-		Phone:    userProfile.Phone,
-	}, err
+	return user.NewResponse(userAuth, userProfile), err
+}
+
+func (u *usecase) Logout(ctx context.Context, sessionID, userID string) error {
+	field := []string{fmt.Sprintf("user:%v", userID)}
+	data := make([]interface{}, len(field))
+	for i, str := range field {
+		data[i] = str
+	}
+	err := u.session.Del(session.FieldStore{TypeField: "DEL", DataField: data})
+	if err != nil {
+		return err
+	}
+	field = []string{"session", "sessionID"}
+	data = make([]interface{}, len(field))
+	for i, str := range field {
+		data[i] = str
+	}
+	err = u.session.Del(session.FieldStore{TypeField: "HDEL", DataField: data})
+	return err
 }

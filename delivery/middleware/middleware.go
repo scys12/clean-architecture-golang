@@ -19,7 +19,7 @@ func SessionMiddleware(s session.SessionStore, role string) echo.MiddlewareFunc 
 				return err
 			}
 			sessionID := cookie.Value
-			sess, err := s.Get(sessionID)
+			sess, err := s.GetSession(sessionID)
 			if err != nil {
 				err = response.Error(ctx, http.StatusInternalServerError, err)
 				return err

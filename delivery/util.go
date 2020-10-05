@@ -84,3 +84,14 @@ func HandlingMultipartForm(c echo.Context, fileParam string) (map[string]interfa
 	}
 	return form, image, nil
 }
+
+func SetCookieSession(c echo.Context, sessionID string) {
+	cookie := &http.Cookie{
+		Name:     "sessionID",
+		Value:    sessionID,
+		HttpOnly: true,
+		MaxAge:   86400 * 7,
+	}
+	c.SetCookie(cookie)
+
+}

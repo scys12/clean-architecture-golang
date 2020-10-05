@@ -28,7 +28,8 @@ func (d *delivery) AuthenticateUser(c echo.Context) error {
 	if err != nil {
 		return response.Error(c, http.StatusNotFound, err)
 	}
-	return response.OK(c, user)
+	util.SetCookieSession(c, user.SessionID)
+	return response.OK(c, user.Response)
 }
 
 func (d *delivery) RegisterUser(c echo.Context) error {
@@ -83,8 +84,10 @@ func (d *delivery) GetUserProfile(c echo.Context) error {
 }
 
 func (d *delivery) Logout(c echo.Context) error {
-	ID := c.Get(sessionID).(string)
-	err := d.redis.Del(ID)
+	ctx := c.Request().Context()
+	sessionID := c.Get(sessionID).(string)
+	userID := c.Get(userID).(string)
+	err := d.usecase.Logout(ctx, sessionID, userID)
 	if err != nil {
 		return response.Error(c, http.StatusInternalServerError, err)
 	}

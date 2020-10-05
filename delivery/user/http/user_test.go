@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
+
 	"github.com/scys12/clean-architecture-golang/pkg/validator"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -28,7 +30,7 @@ func TestAuthenticate(t *testing.T) {
 	tts := []struct {
 		name                 string
 		loginRequest         *request.LoginRequest
-		expectedMockResponse *user.Response
+		expectedMockResponse *user.AuthenticateResponse
 		err                  error
 		resultCode           int
 		requestBody          string
@@ -45,8 +47,10 @@ func TestAuthenticate(t *testing.T) {
 				Password: "abc",
 				Username: "def",
 			},
-			expectedMockResponse: &user.Response{
-				Username: "def",
+			expectedMockResponse: &user.AuthenticateResponse{
+				Response: &user.Response{
+					Username: "def",
+				},
 			},
 			err:        nil,
 			resultCode: http.StatusOK,
@@ -62,8 +66,10 @@ func TestAuthenticate(t *testing.T) {
 			loginRequest: &request.LoginRequest{
 				Username: "def",
 			},
-			expectedMockResponse: &user.Response{
-				Username: "def",
+			expectedMockResponse: &user.AuthenticateResponse{
+				Response: &user.Response{
+					Username: "def",
+				},
 			},
 			err:        errors.New("Bad Request Body"),
 			resultCode: http.StatusInternalServerError,
@@ -80,8 +86,10 @@ func TestAuthenticate(t *testing.T) {
 				Username: "def",
 				Password: "klm",
 			},
-			expectedMockResponse: &user.Response{
-				Username: "def",
+			expectedMockResponse: &user.AuthenticateResponse{
+				Response: &user.Response{
+					Username: "def",
+				},
 			},
 			err:        errors.New("Account Not Found"),
 			resultCode: http.StatusNotFound,
@@ -302,6 +310,56 @@ func TestGetUserProfile(t *testing.T) {
 
 			err = handler.GetUserProfile(c)
 			assert.Equal(t, tt.expectedResultCode, rec.Code)
+		})
+	}
+}
+
+func TestLogout(t *testing.T) {
+	tts := []struct {
+		name       string
+		err        error
+		resultCode int
+		sessionID  string
+		userID     string
+	}{
+		{
+			name:       "Success Logout",
+			err:        nil,
+			resultCode: http.StatusOK,
+			sessionID:  uuid.New().String(),
+			userID:     uuid.New().String(),
+		},
+		{
+			name:       "Failed Logout",
+			err:        errors.New("failed"),
+			resultCode: http.StatusInternalServerError,
+			sessionID:  uuid.New().String(),
+			userID:     uuid.New().String(),
+		},
+	}
+
+	for _, tt := range tts {
+		t.Run(tt.name, func(t *testing.T) {
+			e := echo.New()
+			e.Validator = validator.New()
+
+			req, err := http.NewRequest(echo.POST, "/user/logout", strings.NewReader(""))
+			assert.NoError(t, err)
+
+			rec := httptest.NewRecorder()
+			c := e.NewContext(req, rec)
+			c.Set("userID", tt.userID)
+			c.Set("sessionID", tt.sessionID)
+
+			mockSession := new(sessMocks.SessionStore)
+			mockUserUCase := new(mocks.Usecase)
+			mockUserUCase.On("Logout", c.Request().Context(), tt.sessionID, tt.userID).Return(tt.err)
+
+			handler := uHttp.New(mockUserUCase)
+			uHttp.SetRoute(e, handler, mockSession)
+
+			_ = handler.Logout(c)
+			assert.Equal(t, tt.resultCode, rec.Code)
 		})
 	}
 }

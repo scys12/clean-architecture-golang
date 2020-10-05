@@ -27,7 +27,6 @@ type FileParam struct {
 
 type S3Store interface {
 	UploadFileToS3(FileParam) (string, error)
-	setUploadFileName(FileParam) string
 }
 
 func (awsS3 *awsClient) setUploadFileName(fileParam FileParam) string {

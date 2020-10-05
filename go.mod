@@ -3,7 +3,7 @@ module github.com/scys12/clean-architecture-golang
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.29.15
+	github.com/aws/aws-sdk-go v1.35.2
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-playground/validator/v10 v10.3.0
 	github.com/golang/mock v1.3.1
