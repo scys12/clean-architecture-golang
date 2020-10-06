@@ -70,8 +70,8 @@ func main() {
 	dUserHttp.SetRoute(e, dUserHandler, rd)
 
 	itemRepo := rItem.New(mongo.Database)
-	itemUC := uItemModule.New(itemRepo, aws_s3)
-	dItemHandler := dItemHttp.New(itemUC, rd)
+	itemUC := uItemModule.New(itemRepo, aws_s3, rd)
+	dItemHandler := dItemHttp.New(itemUC)
 	dItemHttp.SetRoute(e, dItemHandler, rd)
 
 	log.Fatal(e.Start(":8080"))

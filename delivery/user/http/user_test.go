@@ -308,7 +308,7 @@ func TestGetUserProfile(t *testing.T) {
 			handler := uHttp.New(mockUserUCase)
 			uHttp.SetRoute(e, handler, mockSession)
 
-			err = handler.GetUserProfile(c)
+			_ = handler.GetUserProfile(c)
 			assert.Equal(t, tt.expectedResultCode, rec.Code)
 		})
 	}

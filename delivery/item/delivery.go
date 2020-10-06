@@ -11,6 +11,6 @@ type Delivery interface {
 	GetItem(echo.Context) error
 	GetAllUserItems(echo.Context) error
 	GetItemsBasedOnCategory(echo.Context) error
-	GetItemsBasedOnUserOwner(echo.Context) error
-	SearchUserItem(echo.Context) error
+	GetAllItems(echo.Context) error
+	GetTenLatestItems(echo.Context) error
 }

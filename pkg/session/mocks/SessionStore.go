@@ -15,6 +15,27 @@ type SessionStore struct {
 	mock.Mock
 }
 
+// CheckLength provides a mock function with given fields: _a0, _a1
+func (_m *SessionStore) CheckLength(_a0 string, _a1 string) (int, error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 int
+	if rf, ok := ret.Get(0).(func(string, string) int); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Connect provides a mock function with given fields:
 func (_m *SessionStore) Connect() redis.Conn {
 	ret := _m.Called()
@@ -89,6 +110,29 @@ func (_m *SessionStore) Get(_a0 session.FieldStore) (interface{}, error) {
 	return r0, r1
 }
 
+// GetItems provides a mock function with given fields:
+func (_m *SessionStore) GetItems() (*[]model.Item, error) {
+	ret := _m.Called()
+
+	var r0 *[]model.Item
+	if rf, ok := ret.Get(0).(func() *[]model.Item); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*[]model.Item)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetSession provides a mock function with given fields: _a0
 func (_m *SessionStore) GetSession(_a0 string) (*session.Session, error) {
 	ret := _m.Called(_a0)
@@ -112,6 +156,48 @@ func (_m *SessionStore) GetSession(_a0 string) (*session.Session, error) {
 	return r0, r1
 }
 
+// InsertLatestItem provides a mock function with given fields: _a0
+func (_m *SessionStore) InsertLatestItem(_a0 model.Item) error {
+	ret := _m.Called(_a0)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.Item) error); ok {
+		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// PopList provides a mock function with given fields: _a0, _a1
+func (_m *SessionStore) PopList(_a0 string, _a1 string) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// PushItem provides a mock function with given fields: _a0, _a1
+func (_m *SessionStore) PushItem(_a0 string, _a1 model.Item) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, model.Item) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Set provides a mock function with given fields: _a0
 func (_m *SessionStore) Set(_a0 session.FieldStore) error {
 	ret := _m.Called(_a0)
@@ -119,6 +205,48 @@ func (_m *SessionStore) Set(_a0 session.FieldStore) error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func(session.FieldStore) error); ok {
 		r0 = rf(_a0)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// TrimList provides a mock function with given fields: _a0, _a1
+func (_m *SessionStore) TrimList(_a0 string, _a1 []string) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateItem provides a mock function with given fields: _a0, _a1
+func (_m *SessionStore) UpdateItem(_a0 model.Item, _a1 model.Item) error {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(model.Item, model.Item) error); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateItemList provides a mock function with given fields: _a0, _a1, _a2, _a3
+func (_m *SessionStore) UpdateItemList(_a0 string, _a1 string, _a2 int, _a3 model.Item) error {
+	ret := _m.Called(_a0, _a1, _a2, _a3)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, int, model.Item) error); ok {
+		r0 = rf(_a0, _a1, _a2, _a3)
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -12,22 +12,25 @@ import (
 
 type delivery struct {
 	usecase uItem.Usecase
-	redis   session.SessionStore
 }
 
-func New(usecase uItem.Usecase, redis session.SessionStore) dItem.Delivery {
+func New(usecase uItem.Usecase) dItem.Delivery {
 	handler := &delivery{
 		usecase: usecase,
-		redis:   redis,
 	}
 	return handler
 }
 
 func SetRoute(e *echo.Echo, handler dItem.Delivery, redis session.SessionStore) {
+	items := e.Group("/items")
+	items.GET("", handler.GetAllItems)
+	items.GET("/category/:categoryID", handler.GetItemsBasedOnCategory)
+	e.GET("/latest", handler.GetTenLatestItems)
 	user := e.Group("/user", middleware.SessionMiddleware(redis, model.ROLE_USER))
-	user.GET("/items/", handler.GetAllUserItems)
-	user.GET(":itemID", handler.GetItem)
-	user.POST("/item", handler.CreateItem)
-	user.PUT("/item/:itemID", handler.UpdateItem)
-	user.DELETE("/item/:itemID", handler.RemoveItem)
+	user.GET("/:userID/items", handler.GetAllUserItems)
+	userItem := user.Group("/item")
+	userItem.GET("/:itemID", handler.GetItem)
+	userItem.POST("", handler.CreateItem)
+	userItem.PUT("/:itemID", handler.UpdateItem)
+	userItem.DELETE("/:itemID", handler.RemoveItem)
 }

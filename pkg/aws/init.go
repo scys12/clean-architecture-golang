@@ -11,7 +11,7 @@ type awsClient struct {
 }
 
 func InitializeSessionAWS() (S3Store, error) {
-	region := ""
+	region := "us-east-1"
 	secretAccessKey := ""
 	sessionToken := ""
 	accessKeyID := ""
